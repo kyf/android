@@ -1,6 +1,9 @@
 package com.kyf.goserver;
 
 import android.app.Activity;
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,9 +21,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public static final int HANDLER_MSG = 1002;
 
+    private static final String port = "8096";
+
     private Thread thread;
 
-    private TextView monitor;
+    private TextView monitor, tips;
 
     private Httpserver.HttpServer httpServer;
 
@@ -56,15 +61,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        httpServer = InstanceHttpServer.getInstance("8096");
+        httpServer = InstanceHttpServer.getInstance(port);
 
         init();
     }
 
     private void init(){
         startServer();
+        tips = (TextView) findViewById(R.id.tips);
         monitor = (TextView) findViewById(R.id.monitor);
         startListenMsg();
+        String ip = getWifiIp();
+        if(ip.equals("")){
+            tips.setText("服务已启动，当前非WIFI环境，只能本机http://localhost:" + port + "/访问");
+        }else {
+            tips.setText("服务已启动，访问地址http://" + ip + ":" + port + "/");
+        }
+    }
+
+    private String getWifiIp(){
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        int state = wifiManager.getWifiState();
+        if(state != WifiManager.WIFI_STATE_ENABLED){
+            return "";
+        }
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int addr = wifiInfo.getIpAddress();
+        return String.format("%d.%d.%d.%d", addr & 0xff, addr >> 8 & 0xff, addr >> 16 & 0xff, addr >> 24 & 0xff);
     }
 
     private void startServer(){
