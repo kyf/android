@@ -1,12 +1,14 @@
 package com.kyf.goserver;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.content.ClipboardManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -26,6 +28,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Thread thread;
 
     private TextView monitor, tips;
+
+    private String access_url = "";
 
     private Httpserver.HttpServer httpServer;
 
@@ -73,10 +77,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         startListenMsg();
         String ip = getWifiIp();
         if(ip.equals("")){
-            tips.setText("服务已启动，当前非WIFI环境，只能本机http://localhost:" + port + "/访问");
+            access_url = "http://localhost:" + port + "/";
+            tips.setText("服务已启动，当前非WIFI环境，只能本机" + access_url + "访问");
         }else {
-            tips.setText("服务已启动，访问地址http://" + ip + ":" + port + "/");
+            access_url = "http://" + ip + ":" + port + "/" ;
+            tips.setText("服务已启动，访问地址" + access_url );
         }
+
+        tips.setOnClickListener(this);
     }
 
     private String getWifiIp(){
@@ -128,7 +136,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-
-
+        int id = view.getId();
+        switch(id){
+            case R.id.tips:{
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText("url", access_url);
+                clipboardManager.setPrimaryClip(clipData);
+                Toast.makeText(this, "地址已复制剪贴板", Toast.LENGTH_SHORT).show();
+                break;
+            }
+        }
     }
 }
