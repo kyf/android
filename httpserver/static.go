@@ -2,10 +2,10 @@ package httpserver
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -111,17 +111,38 @@ func handler(res http.ResponseWriter, req *http.Request, directory string, stati
 			return
 		}
 
-		file = path.Join(file, opt.IndexFile)
-		f, err = dir.Open(file)
+		/*
+			file = path.Join(file, opt.IndexFile)
+			f, err = dir.Open(file)
+			if err != nil {
+				return
+			}
+			defer f.Close()
+
+			fi, err = f.Stat()
+			if err != nil || fi.IsDir() {
+				return
+			}
+		*/
+
+		tree, err := ioutil.ReadDir(fmt.Sprintf("%s%s", directory, req.URL.Path))
 		if err != nil {
 			return
 		}
-		defer f.Close()
 
-		fi, err = f.Stat()
-		if err != nil || fi.IsDir() {
-			return
+		result := make([]byte, 1)
+		for _, t := range tree {
+			line := fmt.Sprintf("<a href='%s'>%s</a><br/>", t.Name(), t.Name())
+			result = append(result, []byte(line)...)
 		}
+
+		res.Header().Set("Content-Type", "text/html")
+		if len(result) < 2 {
+			res.Write([]byte("Nothing..."))
+		} else {
+			res.Write(result)
+		}
+		return
 	}
 
 	// Add an Expires header to the static content

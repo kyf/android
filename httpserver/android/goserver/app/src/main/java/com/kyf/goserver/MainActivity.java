@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     String separator = System.getProperty("line.separator");
                     String last = monitor.getText().toString() + msg.obj.toString() + separator;
                     String[] lines = last.split(separator);
-                    int limit = 7;
+                    int limit = 15;
 
                     if(lines.length > limit) {
                         last = lines[1] + separator;
