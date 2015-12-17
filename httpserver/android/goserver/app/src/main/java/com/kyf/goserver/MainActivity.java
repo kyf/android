@@ -11,6 +11,7 @@ import android.os.Message;
 import android.content.ClipboardManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,19 +72,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void init(){
-        startServer();
         tips = (TextView) findViewById(R.id.tips);
         monitor = (TextView) findViewById(R.id.monitor);
         startListenMsg();
         String ip = getWifiIp();
         if(ip.equals("")){
             access_url = "http://localhost:" + port + "/";
-            tips.setText("服务已启动，当前非WIFI环境，只能本机" + access_url + "访问");
+            tips.setText("服务未启动，当前非WIFI环境，只能本机" + access_url + "访问");
         }else {
             access_url = "http://" + ip + ":" + port + "/" ;
-            tips.setText("服务已启动，访问地址" + access_url );
+            tips.setText("服务未启动，访问地址" + access_url );
         }
 
+        Button statebt = (Button) findViewById(R.id.statebt);
+        Button startbt = (Button) findViewById(R.id.startbt);
+        Button stopbt = (Button) findViewById(R.id.stopbt);
+
+        statebt.setOnClickListener(this);
+        startbt.setOnClickListener(this);
+        stopbt.setOnClickListener(this);
         tips.setOnClickListener(this);
     }
 
@@ -143,6 +150,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 ClipData clipData = ClipData.newPlainText("url", access_url);
                 clipboardManager.setPrimaryClip(clipData);
                 Toast.makeText(this, "地址已复制剪贴板", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            case R.id.startbt:{
+                startServer();
+                break;
+            }
+            case R.id.statebt:{
+                String state = httpServer.State() == 1 ? "启动" : "未启动";
+                Toast.makeText(this, "当前状态：" + state, Toast.LENGTH_SHORT).show();
+                break;
+            }
+            case R.id.stopbt:{
+                httpServer.Stop();
                 break;
             }
         }
